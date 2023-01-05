@@ -6,13 +6,17 @@ public class Main {
     public static void main(String[] args) throws Exception {
         final var httpSecurity = new HttpSecurity();
         httpSecurity.csrf()
-                .and()
-                .headers(new Customizer<HeadersConfigurer<HttpSecurity>>() {
-                    @Override
-                    public void customize(HeadersConfigurer<HttpSecurity> httpSecurityHeadersConfigurer) {
-
-                    }
-                })
+                    .and()
+                    .headers(headersConfigurer -> {
+                        headersConfigurer.defaultsDisabled()
+                                         .frameOptions();
+                        })
+                        .headers()
+                    .and()
+                        .headers()
+                        .defaultsDisabled()
+                        .frameOptions()
+                    .and()
                     .build();
 
     }
