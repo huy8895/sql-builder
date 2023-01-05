@@ -45,7 +45,29 @@ public abstract class SecurityConfigurerAdapter<O, B extends SecurityBuilder<O>>
      * @throws IllegalStateException if {@link SecurityBuilder} is null
      */
     protected final B getBuilder() {
+        Assert.state(this.securityBuilder != null, "securityBuilder cannot be null");
         return this.securityBuilder;
+    }
+
+    /**
+     * Performs post processing of an object. The default is to delegate to the
+     * {@link ObjectPostProcessor}.
+     * @param object the Object to post process
+     * @return the possibly modified Object to use
+     */
+    @SuppressWarnings("unchecked")
+    protected <T> T postProcess(T object) {
+        return (T) this.objectPostProcessor.postProcess(object);
+    }
+
+    /**
+     * Adds an {@link ObjectPostProcessor} to be used for this
+     * {@link SecurityConfigurerAdapter}. The default implementation does nothing to the
+     * object.
+     * @param objectPostProcessor the {@link ObjectPostProcessor} to use
+     */
+    public void addObjectPostProcessor(ObjectPostProcessor<?> objectPostProcessor) {
+        this.objectPostProcessor.addObjectPostProcessor(objectPostProcessor);
     }
 
     /**
@@ -57,5 +79,40 @@ public abstract class SecurityConfigurerAdapter<O, B extends SecurityBuilder<O>>
         this.securityBuilder = builder;
     }
 
+    /**
+     * An {@link ObjectPostProcessor} that delegates work to numerous
+     * {@link ObjectPostProcessor} implementations.
+     *
+     * @author Rob Winch
+     */
+    private static final class CompositeObjectPostProcessor implements ObjectPostProcessor<Object> {
+
+        private List<ObjectPostProcessor<?>> postProcessors = new ArrayList<>();
+
+        @Override
+        @SuppressWarnings({ "rawtypes", "unchecked" })
+        public Object postProcess(Object object) {
+//            for (ObjectPostProcessor opp : this.postProcessors) {
+//                Class<?> oppClass = opp.getClass();
+//                Class<?> oppType = GenericTypeResolver.resolveTypeArgument(oppClass, ObjectPostProcessor.class);
+//                if (oppType == null || oppType.isAssignableFrom(object.getClass())) {
+//                    object = opp.postProcess(object);
+//                }
+//            }
+            return object;
+        }
+
+        /**
+         * Adds an {@link ObjectPostProcessor} to use
+         * @param objectPostProcessor the {@link ObjectPostProcessor} to add
+         * @return true if the {@link ObjectPostProcessor} was added, else false
+         */
+        private boolean addObjectPostProcessor(ObjectPostProcessor<?> objectPostProcessor) {
+            boolean result = this.postProcessors.add(objectPostProcessor);
+//            this.postProcessors.sort(AnnotationAwareOrderComparator.INSTANCE);
+            return result;
+        }
+
+    }
 
 }
