@@ -15,7 +15,7 @@ public final class HttpSecurity extends AbstractConfiguredSecurityBuilder<Defaul
 
     public HttpSecurity headers(Customizer<HeadersConfigurer<HttpSecurity>> headersCustomizer) throws Exception {
         headersCustomizer.customize(getOrApply(new HeadersConfigurer<>()));
-        return this;
+        return HttpSecurity.this;
     }
 
     public HeadersConfigurer<HttpSecurity> headers() throws Exception {

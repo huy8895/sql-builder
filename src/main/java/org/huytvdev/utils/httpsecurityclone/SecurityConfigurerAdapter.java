@@ -45,7 +45,9 @@ public abstract class SecurityConfigurerAdapter<O, B extends SecurityBuilder<O>>
      * @throws IllegalStateException if {@link SecurityBuilder} is null
      */
     protected final B getBuilder() {
-        Assert.state(this.securityBuilder != null, "securityBuilder cannot be null");
+        if (this.securityBuilder == null) {
+            throw new RuntimeException("securityBuilder cannot be null");
+        }
         return this.securityBuilder;
     }
 

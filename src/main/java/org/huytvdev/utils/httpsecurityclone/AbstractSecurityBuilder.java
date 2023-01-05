@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  *
  */
 public abstract class AbstractSecurityBuilder<O> implements SecurityBuilder<O> {
-    private AtomicBoolean building = new AtomicBoolean();
+    private final AtomicBoolean building = new AtomicBoolean();
     private O object;
     @Override
     public final O build() throws Exception {
