@@ -7,7 +7,7 @@ public class Query {
         return new QueryBuilder(table);
     }
 
-    static class QueryBuilder {
+    private static class QueryBuilder {
         private final String table;
         /**
          * The columns that should be returned.

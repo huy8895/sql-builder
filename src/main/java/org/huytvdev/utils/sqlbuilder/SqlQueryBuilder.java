@@ -1,19 +1,7 @@
 package org.huytvdev.utils.sqlbuilder;
 
-public class SqlQueryBuilder extends AbstractConfiguredQueryBuilder<DefaultSqlQueryChain, SqlQueryBuilder>
-//    implements QueryBuilder<DefaultSqlQueryChain>
-{
-    protected SqlQueryBuilder(boolean allowConfigurersOfSameType, ObjectPostProcessor<Object> objectPostProcessor) {
-        super(allowConfigurersOfSameType, objectPostProcessor);
-    }
+public interface SqlQueryBuilder<S extends SqlQueryBuilder<S>>
+        extends QueryBuilder<DefaultSqlQueryChain> {
 
-//    protected SqlQueryBuilder(ObjectPostProcessor<Object> objectPostProcessor) {
-//        super(objectPostProcessor);
-//    }
-
-    @Override
-    protected DefaultSqlQueryChain performBuild() throws Exception {
-        // TODO: 6/1/2023
-        return new DefaultSqlQueryChain();
-    }
+    <C extends QueryConfigurer<DefaultSqlQueryChain, S>> C removeConfigurer(Class<C> clazz);
 }
