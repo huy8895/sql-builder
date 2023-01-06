@@ -15,4 +15,8 @@ public class NativeQuery extends AbstractConfiguredQueryBuilder<DefaultSqlQueryC
         // TODO: 6/1/2023
         return new DefaultSqlQueryChain();
     }
+
+    public JoinConfigurer<NativeQuery> join() throws Exception {
+        return apply(new JoinConfigurer<>());
+    }
 }
