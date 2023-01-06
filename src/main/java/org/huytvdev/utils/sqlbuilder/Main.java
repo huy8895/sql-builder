@@ -2,12 +2,10 @@ package org.huytvdev.utils.sqlbuilder;
 
 
 public class Main {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         System.out.println("Hello world!");
-        Query.table("employee")
-             .select("id", "name")
-             .where("id", "=", "1")
-             .build();
+//        final var sqlQueryBuilder = new SqlQueryBuilder(true, ObjectPostProcessor<>);
+//        final var build = sqlQueryBuilder.build();
 
     }
 }
