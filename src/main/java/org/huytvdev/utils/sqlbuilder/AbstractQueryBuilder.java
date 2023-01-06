@@ -1,8 +1,6 @@
 package org.huytvdev.utils.sqlbuilder;
 
 
-import org.huytvdev.utils.httpsecurityclone.AlreadyBuiltException;
-
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -22,7 +20,7 @@ public abstract class AbstractQueryBuilder<O> implements QueryBuilder<O> {
             this.object = doBuild();
             return this.object;
         }
-        throw new AlreadyBuiltException("This object has already been built");
+        throw new RuntimeException("This object has already been built");
     }
 
     /**
