@@ -1,6 +1,9 @@
 package org.huytvdev.utils.sqlbuilder;
 
 
+import org.huytvdev.utils.httpsecurityclone.SecurityConfigurer;
+import org.huytvdev.utils.httpsecurityclone.SecurityConfigurerAdapter;
+
 import java.util.*;
 
 /**
@@ -29,8 +32,8 @@ public abstract class AbstractConfiguredQueryBuilder<O, B extends QueryBuilder<O
     private final List<QueryConfigurer<O, B>> configurersAddedInInitializing = new ArrayList<>();
     private final Map<Class<?>, Object> sharedObjects = new HashMap<>();
     private final boolean allowConfigurersOfSameType;
-    private final ObjectPostProcessor<Object> objectPostProcessor;
-    private final BuildState buildState;
+    private ObjectPostProcessor<Object> objectPostProcessor;
+    private BuildState buildState;
 
     protected AbstractConfiguredQueryBuilder(boolean allowConfigurersOfSameType,
                                              ObjectPostProcessor<Object> objectPostProcessor) {
@@ -71,6 +74,187 @@ public abstract class AbstractConfiguredQueryBuilder<O, B extends QueryBuilder<O
             return this.buildState == BuildState.UNBUILT;
         }
     }
+
+    /**
+     * Applies a {@link QueryConfigurerAdapter} to this {@link QueryBuilder} and
+     * invokes {@link QueryConfigurerAdapter#setBuilder(QueryBuilder)}.
+     * @param configurer
+     * @return the {@link QueryConfigurerAdapter} for further customizations
+     * @throws Exception
+     */
+    @SuppressWarnings("unchecked")
+    public <C extends QueryConfigurerAdapter<O, B>> C apply(C configurer) throws Exception {
+        configurer.addObjectPostProcessor(this.objectPostProcessor);
+        configurer.setBuilder((B) this);
+        this.add(configurer);
+        return configurer;
+    }
+
+    /**
+     * Adds {@link QueryConfigurer} ensuring that it is allowed and invoking
+     * {@link QueryConfigurer#init(QueryBuilder)} immediately if necessary.
+     * @param configurer the {@link QueryConfigurer} to add
+     */
+    @SuppressWarnings("unchecked")
+    private <C extends QueryConfigurer<O, B>> void add(C configurer) {
+
+        Assert.notNull(configurer, "configurer cannot be null");
+
+        Class<? extends QueryConfigurer<O, B>> clazz =
+                (Class<? extends QueryConfigurer<O, B>>) configurer.getClass();
+
+        synchronized (this.configurers) {
+            if (this.buildState.isConfigured()) {
+                throw new IllegalStateException("Cannot apply " + configurer + " to already built object");
+            }
+            List<QueryConfigurer<O, B>> configs = null;
+            if (this.allowConfigurersOfSameType) {
+                configs = this.configurers.get(clazz);
+            }
+            configs = (configs != null) ? configs : new ArrayList<>(1);
+            configs.add(configurer);
+
+            this.configurers.put(clazz, configs);
+            if (this.buildState.isInitializing()) {
+                this.configurersAddedInInitializing.add(configurer);
+            }
+        }
+    }
+
+    /**
+     * Gets all the {@link QueryConfigurer} instances by its class name or an empty
+     * List if not found. Note that object hierarchies are not considered.
+     * @param clazz the {@link QueryConfigurer} class to look for
+     * @return a list of {@link QueryConfigurer}s for further customization
+     */
+    @SuppressWarnings("unchecked")
+    public <C extends QueryConfigurer<O, B>> List<C> getConfigurers(Class<C> clazz) {
+        List<C> configs = (List<C>) this.configurers.get(clazz);
+        if (configs == null) {
+            return new ArrayList<>();
+        }
+        return new ArrayList<>(configs);
+    }
+
+    /**
+     * Removes and returns the {@link QueryConfigurer} by its class name or
+     * <code>null</code> if not found. Note that object hierarchies are not considered.
+     * @param clazz
+     * @return
+     */
+    @SuppressWarnings("unchecked")
+    public <C extends QueryConfigurer<O, B>> C removeConfigurer(Class<C> clazz) {
+        List<QueryConfigurer<O, B>> configs = this.configurers.remove(clazz);
+        if (configs == null) {
+            return null;
+        }
+
+        Assert.state(configs.size() == 1,
+                     () -> "Only one configurer expected for type " + clazz + ", but got " + configs);
+        return (C) configs.get(0);
+    }
+
+    /**
+     * Specifies the {@link ObjectPostProcessor} to use.
+     * @param objectPostProcessor the {@link ObjectPostProcessor} to use. Cannot be null
+     * @return the {@link QueryBuilder} for further customizations
+     */
+    @SuppressWarnings("unchecked")
+    public B objectPostProcessor(ObjectPostProcessor<Object> objectPostProcessor) {
+        Assert.notNull(objectPostProcessor, "objectPostProcessor cannot be null");
+        this.objectPostProcessor = objectPostProcessor;
+        return (B) this;
+    }
+
+    /**
+     * Performs post processing of an object. The default is to delegate to the
+     * {@link ObjectPostProcessor}.
+     * @param object the Object to post process
+     * @return the possibly modified Object to use
+     */
+    protected <P> P postProcess(P object) {
+        return this.objectPostProcessor.postProcess(object);
+    }
+
+    /**
+     * Executes the build using the {@link SecurityConfigurer}'s that have been applied
+     * using the following steps:
+     *
+     * <ul>
+     * <li>Invokes {@link #beforeInit()} for any subclass to hook into</li>
+     * <li>Invokes {@link QueryConfigurer#init(QueryBuilder)} for any
+     * {@link SecurityConfigurer} that was applied to this builder.</li>
+     * <li>Invokes {@link #beforeConfigure()} for any subclass to hook into</li>
+     * <li>Invokes {@link #performBuild()} which actually builds the Object</li>
+     * </ul>
+     */
+    @Override
+    protected final O doBuild() throws Exception {
+        synchronized (this.configurers) {
+            this.buildState = BuildState.INITIALIZING;
+            beforeInit();
+            init();
+            this.buildState = BuildState.CONFIGURING;
+            beforeConfigure();
+            configure();
+            this.buildState = BuildState.BUILDING;
+            O result = performBuild();
+            this.buildState = BuildState.BUILT;
+            return result;
+        }
+    }
+
+    /**
+     * Invoked prior to invoking each {@link QueryConfigurer#init(QueryBuilder)}
+     * method. Subclasses may override this method to hook into the lifecycle without
+     * using a {@link SecurityConfigurer}.
+     */
+    protected void beforeInit() throws Exception {
+    }
+
+    @SuppressWarnings("unchecked")
+    private void init() throws Exception {
+        Collection<QueryConfigurer<O, B>> configurers = getConfigurers();
+        for (QueryConfigurer<O, B> configurer : configurers) {
+            configurer.init((B) this);
+        }
+        for (QueryConfigurer<O, B> configurer : this.configurersAddedInInitializing) {
+            configurer.init((B) this);
+        }
+    }
+
+    /**
+     * Invoked prior to invoking each
+     * {@link QueryConfigurer#configure(QueryBuilder)} method. Subclasses may
+     * override this method to hook into the lifecycle without using a
+     * {@link SecurityConfigurer}.
+     */
+    protected void beforeConfigure() throws Exception {
+    }
+
+    @SuppressWarnings("unchecked")
+    private void configure() throws Exception {
+        Collection<QueryConfigurer<O, B>> configurers = getConfigurers();
+        for (QueryConfigurer<O, B> configurer : configurers) {
+            configurer.configure((B) this);
+        }
+    }
+
+
+    /**
+     * Subclasses must implement this method to build the object that is being returned.
+     * @return the Object to be buit or null if the implementation allows it
+     */
+    protected abstract O performBuild() throws Exception;
+
+    private Collection<QueryConfigurer<O, B>> getConfigurers() {
+        List<QueryConfigurer<O, B>> result = new ArrayList<>();
+        for (List<QueryConfigurer<O, B>> configs : this.configurers.values()) {
+            result.addAll(configs);
+        }
+        return result;
+    }
+
 
     /**
      * The build state for the application
@@ -123,7 +307,6 @@ public abstract class AbstractConfiguredQueryBuilder<O, B extends QueryBuilder<O
 
         /**
          * Determines if the state is CONFIGURING or later
-         * @return
          */
         public boolean isConfigured() {
             return this.order >= CONFIGURING.order;
