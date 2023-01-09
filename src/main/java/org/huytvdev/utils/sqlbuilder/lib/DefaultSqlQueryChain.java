@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 @Builder
 public final class DefaultSqlQueryChain {
     private List<String> columns;
+    private List<WhereClause> wheres;
     private String from;
 
     public String getSql() {
@@ -25,6 +26,18 @@ public final class DefaultSqlQueryChain {
         if (null != from) {
             statements.add("FROM");
             statements.add(this.from);
+        }
+
+        if (!this.wheres.isEmpty()) {
+            statements.add("WHERE");
+            for (int i = 0; i < this.wheres.size(); i++) {
+                final var whereClause = this.wheres.get(i);
+                if (i == 0) {
+                    statements.add(whereClause.toString());
+                } else {
+                    statements.add(whereClause.getType() + " " + whereClause);
+                }
+            }
         }
 
         final var sql = String.join(" ", statements);

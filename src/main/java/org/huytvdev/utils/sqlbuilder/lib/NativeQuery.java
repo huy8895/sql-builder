@@ -8,6 +8,8 @@ public class NativeQuery extends AbstractConfiguredQueryBuilder<DefaultSqlQueryC
         implements QueryBuilder<DefaultSqlQueryChain> {
     private final List<String> columns = new LinkedList<>();
     private String from;
+    private List<WhereClause> wheres = new LinkedList<>();
+
     public NativeQuery(boolean allowConfigurersOfSameType, ObjectPostProcessor<Object> objectPostProcessor) {
         super(allowConfigurersOfSameType, objectPostProcessor);
     }
@@ -30,6 +32,7 @@ public class NativeQuery extends AbstractConfiguredQueryBuilder<DefaultSqlQueryC
         return DefaultSqlQueryChain.builder()
                                    .columns(this.columns)
                                    .from(this.from)
+                                   .wheres(this.wheres)
                                    .build();
     }
 
@@ -66,6 +69,15 @@ public class NativeQuery extends AbstractConfiguredQueryBuilder<DefaultSqlQueryC
 
     public NativeQuery from(String table) {
         this.from = table;
+        return this;
+    }
+
+    public NativeQuery where(String column, String operator, Object value) {
+        this.wheres.add(WhereClause.builder()
+                                   .column(column)
+                                   .operator(operator)
+                                   .value(value)
+                                   .build());
         return this;
     }
 }
