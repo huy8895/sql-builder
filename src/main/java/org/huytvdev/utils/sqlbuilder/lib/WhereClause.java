@@ -10,9 +10,11 @@ public class WhereClause {
     private String operator;
     private Object value;
     private boolean and;
+    private String rawSql;
 
-    @Override
-    public String toString() {
+
+    public String getSql() {
+        if (this.rawSql != null) return this.rawSql;
         return column
                 + ' ' + operator
                 + ' ' + '\'' + value + '\'';

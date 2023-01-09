@@ -33,10 +33,10 @@ public final class DefaultSqlQueryChain {
             for (int i = 0; i < this.wheres.size(); i++) {
                 final var whereClause = this.wheres.get(i);
                 if (i == 0) {
-                    statements.add(whereClause.toString());
+                    statements.add(whereClause.getSql());
                 } else {
                     final var isAnd = whereClause.isAnd() ? "AND" : "OR";
-                    statements.add(isAnd + " " + whereClause);
+                    statements.add(isAnd + " " + whereClause.getSql());
                 }
             }
         }

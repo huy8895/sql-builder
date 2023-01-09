@@ -99,4 +99,12 @@ public class NativeQuery extends AbstractConfiguredQueryBuilder<DefaultSqlQueryC
                      .noneMatch(s -> s.toUpperCase()
                                       .equals(operator));
     }
+
+    public NativeQuery whereRaw(String raw) {
+        this.wheres.add(WhereClause.builder()
+                                   .rawSql(raw)
+                                   .and(true)
+                                   .build());
+        return this;
+    }
 }

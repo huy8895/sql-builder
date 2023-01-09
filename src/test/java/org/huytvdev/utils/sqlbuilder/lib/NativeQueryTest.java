@@ -69,4 +69,20 @@ class NativeQueryTest {
                                                  .build());
     }
 
+    @Test
+    void testWhereRaw() throws Exception {
+        final var nativeQuery = new NativeQuery();
+        final var queryChain =
+                nativeQuery.select("id", "name")
+                           .from("user")
+                           .where("user.id", "=", 1)
+                           .where("user.name", "LIKE", "%" + "huy" + "%")
+                           .whereRaw("user.role is not null")
+                           .build();
+        final var expected = "SELECT id , name FROM user WHERE user.id = '1' AND user.name LIKE '%huy%' AND user.role is not null";
+        final var actual = queryChain.getSql();
+        Assertions.assertEquals(expected.replaceAll("\\s+", ""),
+                                (actual.replaceAll("\\s+", "")));
+    }
+
 }
