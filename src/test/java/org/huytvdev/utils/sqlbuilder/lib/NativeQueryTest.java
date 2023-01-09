@@ -57,4 +57,16 @@ class NativeQueryTest {
                                       (actual.replaceAll("\\s+", "")));
     }
 
+    @Test
+    void testWhereInvalidOperator() throws Exception {
+        final var nativeQuery = new NativeQuery();
+        nativeQuery.select("id", "name")
+                   .from("user")
+                   .where("user.id", "=", 1)
+                   .where("user.name", "LIKE", "%" + "huy" + "%");
+        Assertions.assertThrows(InvalidArgumentException.class,
+                                () -> nativeQuery.where("user.age", "is", "not null")
+                                                 .build());
+    }
+
 }

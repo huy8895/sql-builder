@@ -1,11 +1,19 @@
 package org.huytvdev.utils.sqlbuilder.lib;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
 public class NativeQuery extends AbstractConfiguredQueryBuilder<DefaultSqlQueryChain, NativeQuery>
         implements QueryBuilder<DefaultSqlQueryChain> {
+    public static final String[] OPERATORS = {
+            "=", "<", ">", "<=", ">=", "<>", "!=", "<=>",
+            "like", "like binary", "not like", "ilike",
+            "&", "|", "^", "<<", ">>", "&~", "is", "is not",
+            "rlike", "not rlike", "regexp", "not regexp",
+            "~", "~*", "!~", "!~*", "similar to",
+            "not similar to", "not ilike", "~~*", "!~~*"};
     private final List<String> columns = new LinkedList<>();
     private String from;
     private List<WhereClause> wheres = new LinkedList<>();
@@ -73,6 +81,9 @@ public class NativeQuery extends AbstractConfiguredQueryBuilder<DefaultSqlQueryC
     }
 
     public NativeQuery where(String column, String operator, Object value) {
+        if (this.invalidOperator(operator)) {
+            throw new InvalidArgumentException("Illegal operator and value combination.");
+        }
         this.wheres.add(WhereClause.builder()
                                    .column(column)
                                    .operator(operator)
@@ -80,5 +91,12 @@ public class NativeQuery extends AbstractConfiguredQueryBuilder<DefaultSqlQueryC
                                    .and(true)
                                    .build());
         return this;
+    }
+
+    private boolean invalidOperator(String operator) {
+        if (operator == null) return false;
+        return Arrays.stream(OPERATORS)
+                     .noneMatch(s -> s.toUpperCase()
+                                      .equals(operator));
     }
 }
