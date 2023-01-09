@@ -7,15 +7,15 @@ import java.util.*;
 
 /**
  * <p>
- * A base {@link QueryBuilder} that allows {@link QueryConfigurer} to be applied to
+ * A base {@link QueryBuilder} that allows {@link QueryStatement} to be applied to
  * it. This makes modifying the {@link QueryBuilder} a strategy that can be customized
- * and broken up into a number of {@link QueryConfigurer} objects that have more
+ * and broken up into a number of {@link QueryStatement} objects that have more
  * specific goals than that of the {@link QueryBuilder}.
  * </p>
  *
  * <p>
  * For example, a {@link QueryBuilder} may build an {@link DelegatingFilterProxy}, but
- * a {@link QueryConfigurer} might populate the {@link QueryBuilder} with the
+ * a {@link QueryStatement} might populate the {@link QueryBuilder} with the
  * filters necessary for session management, form based login, authorization, etc.
  * </p>
  *
@@ -26,9 +26,9 @@ import java.util.*;
 public abstract class AbstractConfiguredQueryBuilder<O, B extends QueryBuilder<O>>
         extends AbstractQueryBuilder<O> {
 
-    private final Map<Class<? extends QueryConfigurer<O, B>>, List<QueryConfigurer<O, B>>> configurers = new LinkedHashMap<>();
+    private final Map<Class<? extends QueryStatement<O, B>>, List<QueryStatement<O, B>>> configurers = new LinkedHashMap<>();
 
-    private final List<QueryConfigurer<O, B>> configurersAddedInInitializing = new ArrayList<>();
+    private final List<QueryStatement<O, B>> configurersAddedInInitializing = new ArrayList<>();
     private final Map<Class<?>, Object> sharedObjects = new HashMap<>();
     private final boolean allowConfigurersOfSameType;
     private ObjectPostProcessor<Object> objectPostProcessor;
@@ -82,8 +82,8 @@ public abstract class AbstractConfiguredQueryBuilder<O, B extends QueryBuilder<O
      * @throws Exception
      */
     @SuppressWarnings("unchecked")
-    public <C extends QueryConfigurerAdapter<O, B>> C apply(C configurer) throws Exception {
-        configurer.addObjectPostProcessor(this.objectPostProcessor);
+    public <C extends QueryStatementAdapter<O, B>> C apply(C configurer) throws Exception {
+//        configurer.addObjectPostProcessor(this.objectPostProcessor);
         configurer.setBuilder((B) this);
         this.add(configurer);
         return configurer;
@@ -104,23 +104,23 @@ public abstract class AbstractConfiguredQueryBuilder<O, B extends QueryBuilder<O
     }
 
     /**
-     * Adds {@link QueryConfigurer} ensuring that it is allowed and invoking
-     * {@link QueryConfigurer#init(QueryBuilder)} immediately if necessary.
-     * @param configurer the {@link QueryConfigurer} to add
+     * Adds {@link QueryStatement} ensuring that it is allowed and invoking
+     * {@link QueryStatement#init(QueryBuilder)} immediately if necessary.
+     * @param configurer the {@link QueryStatement} to add
      */
     @SuppressWarnings("unchecked")
-    private <C extends QueryConfigurer<O, B>> void add(C configurer) {
+    private <C extends QueryStatement<O, B>> void add(C configurer) {
 
         Assert.notNull(configurer, "configurer cannot be null");
 
-        Class<? extends QueryConfigurer<O, B>> clazz =
-                (Class<? extends QueryConfigurer<O, B>>) configurer.getClass();
+        Class<? extends QueryStatement<O, B>> clazz =
+                (Class<? extends QueryStatement<O, B>>) configurer.getClass();
 
         synchronized (this.configurers) {
             if (this.buildState.isConfigured()) {
                 throw new IllegalStateException("Cannot apply " + configurer + " to already built object");
             }
-            List<QueryConfigurer<O, B>> configs = null;
+            List<QueryStatement<O, B>> configs = null;
             if (this.allowConfigurersOfSameType) {
                 configs = this.configurers.get(clazz);
             }
@@ -135,13 +135,13 @@ public abstract class AbstractConfiguredQueryBuilder<O, B extends QueryBuilder<O
     }
 
     /**
-     * Gets all the {@link QueryConfigurer} instances by its class name or an empty
+     * Gets all the {@link QueryStatement} instances by its class name or an empty
      * List if not found. Note that object hierarchies are not considered.
-     * @param clazz the {@link QueryConfigurer} class to look for
-     * @return a list of {@link QueryConfigurer}s for further customization
+     * @param clazz the {@link QueryStatement} class to look for
+     * @return a list of {@link QueryStatement}s for further customization
      */
     @SuppressWarnings("unchecked")
-    public <C extends QueryConfigurer<O, B>> List<C> getConfigurers(Class<C> clazz) {
+    public <C extends QueryStatement<O, B>> List<C> getConfigurers(Class<C> clazz) {
         List<C> configs = (List<C>) this.configurers.get(clazz);
         if (configs == null) {
             return new ArrayList<>();
@@ -150,14 +150,14 @@ public abstract class AbstractConfiguredQueryBuilder<O, B extends QueryBuilder<O
     }
 
     /**
-     * Removes and returns the {@link QueryConfigurer} by its class name or
+     * Removes and returns the {@link QueryStatement} by its class name or
      * <code>null</code> if not found. Note that object hierarchies are not considered.
      * @param clazz
      * @return
      */
     @SuppressWarnings("unchecked")
-    public <C extends QueryConfigurer<O, B>> C removeConfigurer(Class<C> clazz) {
-        List<QueryConfigurer<O, B>> configs = this.configurers.remove(clazz);
+    public <C extends QueryStatement<O, B>> C removeConfigurer(Class<C> clazz) {
+        List<QueryStatement<O, B>> configs = this.configurers.remove(clazz);
         if (configs == null) {
             return null;
         }
@@ -195,7 +195,7 @@ public abstract class AbstractConfiguredQueryBuilder<O, B extends QueryBuilder<O
      *
      * <ul>
      * <li>Invokes {@link #beforeInit()} for any subclass to hook into</li>
-     * <li>Invokes {@link QueryConfigurer#init(QueryBuilder)} for any
+     * <li>Invokes {@link QueryStatement#init(QueryBuilder)} for any
      * {@link SecurityConfigurer} that was applied to this builder.</li>
      * <li>Invokes {@link #beforeConfigure()} for any subclass to hook into</li>
      * <li>Invokes {@link #performBuild()} which actually builds the Object</li>
@@ -218,7 +218,7 @@ public abstract class AbstractConfiguredQueryBuilder<O, B extends QueryBuilder<O
     }
 
     /**
-     * Invoked prior to invoking each {@link QueryConfigurer#init(QueryBuilder)}
+     * Invoked prior to invoking each {@link QueryStatement#init(QueryBuilder)}
      * method. Subclasses may override this method to hook into the lifecycle without
      * using a {@link SecurityConfigurer}.
      */
@@ -227,18 +227,18 @@ public abstract class AbstractConfiguredQueryBuilder<O, B extends QueryBuilder<O
 
     @SuppressWarnings("unchecked")
     private void init() throws Exception {
-        Collection<QueryConfigurer<O, B>> configurers = getConfigurers();
-        for (QueryConfigurer<O, B> configurer : configurers) {
+        Collection<QueryStatement<O, B>> configurers = getConfigurers();
+        for (QueryStatement<O, B> configurer : configurers) {
             configurer.init((B) this);
         }
-        for (QueryConfigurer<O, B> configurer : this.configurersAddedInInitializing) {
+        for (QueryStatement<O, B> configurer : this.configurersAddedInInitializing) {
             configurer.init((B) this);
         }
     }
 
     /**
      * Invoked prior to invoking each
-     * {@link QueryConfigurer#configure(QueryBuilder)} method. Subclasses may
+     * {@link QueryStatement#configure(QueryBuilder)} method. Subclasses may
      * override this method to hook into the lifecycle without using a
      * {@link SecurityConfigurer}.
      */
@@ -247,8 +247,8 @@ public abstract class AbstractConfiguredQueryBuilder<O, B extends QueryBuilder<O
 
     @SuppressWarnings("unchecked")
     private void configure() throws Exception {
-        Collection<QueryConfigurer<O, B>> configurers = getConfigurers();
-        for (QueryConfigurer<O, B> configurer : configurers) {
+        Collection<QueryStatement<O, B>> configurers = getConfigurers();
+        for (QueryStatement<O, B> configurer : configurers) {
             configurer.configure((B) this);
         }
     }
@@ -260,9 +260,9 @@ public abstract class AbstractConfiguredQueryBuilder<O, B extends QueryBuilder<O
      */
     protected abstract O performBuild() throws Exception;
 
-    private Collection<QueryConfigurer<O, B>> getConfigurers() {
-        List<QueryConfigurer<O, B>> result = new ArrayList<>();
-        for (List<QueryConfigurer<O, B>> configs : this.configurers.values()) {
+    private Collection<QueryStatement<O, B>> getConfigurers() {
+        List<QueryStatement<O, B>> result = new ArrayList<>();
+        for (List<QueryStatement<O, B>> configs : this.configurers.values()) {
             result.addAll(configs);
         }
         return result;
@@ -284,21 +284,21 @@ public abstract class AbstractConfiguredQueryBuilder<O, B extends QueryBuilder<O
 
         /**
          * The state from when {@link QueryBuilder#build()} is first invoked until all the
-         * {@link QueryConfigurer#init(QueryBuilder)} methods have been invoked.
+         * {@link QueryStatement#init(QueryBuilder)} methods have been invoked.
          */
         INITIALIZING(1),
 
         /**
-         * The state from after all {@link QueryConfigurer#init(QueryBuilder)} have
+         * The state from after all {@link QueryStatement#init(QueryBuilder)} have
          * been invoked until after all the
-         * {@link QueryConfigurer#configure(QueryBuilder)} methods have been
+         * {@link QueryStatement#configure(QueryBuilder)} methods have been
          * invoked.
          */
         CONFIGURING(2),
 
         /**
          * From the point after all the
-         * {@link QueryConfigurer#configure(QueryBuilder)} have completed to just
+         * {@link QueryStatement#configure(QueryBuilder)} have completed to just
          * after {@link AbstractConfiguredQueryBuilder#performBuild()}.
          */
         BUILDING(3),

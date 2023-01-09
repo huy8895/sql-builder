@@ -16,7 +16,29 @@ public class NativeQuery extends AbstractConfiguredQueryBuilder<DefaultSqlQueryC
         return new DefaultSqlQueryChain();
     }
 
-    public JoinStatement<NativeQuery> join() throws Exception {
-        return this.addStatement(new JoinStatement<>());
+//    public JoinStatement<NativeQuery> join(String table) throws Exception {
+//        return this.addStatement(new JoinStatement<>(table));
+//    }
+//
+//    public JoinStatement<NativeQuery> join(String tablename, Customizer<JoinStatement<NativeQuery>> customizer)
+//            throws Exception {
+//        final var statement = new JoinStatement<NativeQuery>(tablename);
+//        customizer.customize(statement);
+//        return this.addStatement(statement);
+//    }
+
+    public JoinStatement<NativeQuery> join(Customizer<JoinStatement<NativeQuery>> customizer)
+            throws Exception {
+        final var statement = new JoinStatement<NativeQuery>();
+        customizer.customize(statement);
+        return this.addStatement(statement);
+    }
+
+
+    public NativeQuery join(String table, String first, String operator, String second)
+            throws Exception {
+        final var statement = new JoinStatement<NativeQuery>();
+        this.addStatement(statement);
+        return this;
     }
 }

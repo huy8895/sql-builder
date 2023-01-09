@@ -14,10 +14,10 @@ import org.huytvdev.utils.httpsecurityclone.SecurityConfigurer;
  * @author huy8895
  * @see AbstractConfiguredQueryBuilder
  */
-public interface QueryConfigurer<O, B extends QueryBuilder<O>> {
+public interface QueryStatement<O, B extends QueryBuilder<O>> {
     /**
-     * Initialize the {@link QueryConfigurer}. Here only shared state should be created
-     * and modified, but not properties on the {@link QueryConfigurer} used for building
+     * Initialize the {@link QueryStatement}. Here only shared state should be created
+     * and modified, but not properties on the {@link QueryStatement} used for building
      * the object. This ensures that the {@link #configure(QueryBuilder)} } method uses
      * the correct shared objects when building. Configurers should be applied here.
      * @param builder
@@ -26,8 +26,8 @@ public interface QueryConfigurer<O, B extends QueryBuilder<O>> {
     void init(B builder) throws Exception;
 
     /**
-     * Configure the {@link QueryConfigurer} by setting the necessary properties on the
-     * {@link QueryConfigurer}.
+     * Configure the {@link QueryStatement} by setting the necessary properties on the
+     * {@link QueryStatement}.
      * @param builder
      * @throws Exception
      */

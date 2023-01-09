@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public abstract class QueryStatementAdapter<O, B extends QueryBuilder<O>>
-        implements QueryConfigurer<O, B> {
+        implements QueryStatement<O, B> {
     private B queryBuilder;
     @Override
     public void init(B builder) throws Exception {
