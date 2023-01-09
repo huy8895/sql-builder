@@ -101,4 +101,21 @@ class NativeQueryTest {
                                 (actual.replaceAll("\\s+", "")));
     }
 
+    //Logical Grouping
+    //select * from users where name = 'John' and (votes > 100 or title = 'Admin')
+    @Test
+    void testWhereGroup() throws Exception {
+        final var nativeQuery = new NativeQuery();
+        final var queryChain =
+                nativeQuery.select("*")
+                           .from("users")
+                           .where("name", "=", "John")
+                           .where(q -> q.where("votes", ">", "100")
+                                        .orWhere("title", "=", "Admin"))
+                           .build();
+        final var expected = "select * from users where name = 'John' and (votes > '100' or title = 'Admin')";
+        final var actual = queryChain.getSql();
+        Assertions.assertEquals(expected.toUpperCase().replaceAll("\\s+", ""),
+                                (actual.toUpperCase().replaceAll("\\s+", "")));
+    }
 }

@@ -2,11 +2,8 @@ package org.huytvdev.utils.sqlbuilder.lib;
 
 import lombok.Builder;
 
-import java.util.Collection;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Builder
 public final class DefaultSqlQueryChain {
@@ -30,15 +27,8 @@ public final class DefaultSqlQueryChain {
 
         if (!this.wheres.isEmpty()) {
             statements.add("WHERE");
-            for (int i = 0; i < this.wheres.size(); i++) {
-                final var whereClause = this.wheres.get(i);
-                if (i == 0) {
-                    statements.add(whereClause.getSql());
-                } else {
-                    final var isAnd = whereClause.isAnd() ? "AND" : "OR";
-                    statements.add(isAnd + " " + whereClause.getSql());
-                }
-            }
+            final var wheresStatements = WhereClause.extractedStatements(this.wheres);
+            statements.addAll(wheresStatements);
         }
 
         final var sql = String.join(" ", statements);

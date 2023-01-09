@@ -81,6 +81,14 @@ public class NativeQuery extends AbstractConfiguredQueryBuilder<DefaultSqlQueryC
     }
 
     public NativeQuery where(String column, String operator, Object value) {
+        return createWhere(column, operator, value, true);
+    }
+
+    public NativeQuery orWhere(String column, String operator, Object value) {
+        return createWhere(column, operator, value, false);
+    }
+
+    private NativeQuery createWhere(String column, String operator, Object value, boolean and) {
         if (this.invalidOperator(operator)) {
             throw new InvalidArgumentException("Illegal operator and value combination.");
         }
@@ -88,6 +96,18 @@ public class NativeQuery extends AbstractConfiguredQueryBuilder<DefaultSqlQueryC
                                    .column(column)
                                    .operator(operator)
                                    .value(value)
+                                   .and(and)
+                                   .build());
+        return this;
+    }
+
+    public NativeQuery where(Customizer<NativeQuery> whereClauseCustomizer) {
+        final var query = new NativeQuery();
+        whereClauseCustomizer.customize(query);
+        final var whereStatements = WhereClause.extractedStatements(query.wheres);
+        final var rawSql = "(" + String.join(" ", whereStatements) + ")";
+        this.wheres.add(WhereClause.builder()
+                                   .rawSql(rawSql)
                                    .and(true)
                                    .build());
         return this;
