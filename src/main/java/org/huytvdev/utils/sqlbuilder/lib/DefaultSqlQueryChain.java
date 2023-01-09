@@ -27,6 +27,8 @@ public final class DefaultSqlQueryChain {
             statements.add(this.from);
         }
 
-        return String.join(" ", statements);
+        final var sql = String.join(" ", statements);
+        System.out.println("queryChain.getSql() = " + sql);
+        return sql;
     }
 }
