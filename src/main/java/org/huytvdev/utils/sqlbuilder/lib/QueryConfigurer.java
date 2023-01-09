@@ -1,4 +1,4 @@
-package org.huytvdev.utils.sqlbuilder;
+package org.huytvdev.utils.sqlbuilder.lib;
 
 import org.huytvdev.utils.httpsecurityclone.SecurityConfigurer;
 

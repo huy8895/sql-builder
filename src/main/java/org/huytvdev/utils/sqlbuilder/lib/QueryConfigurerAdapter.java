@@ -1,4 +1,4 @@
-package org.huytvdev.utils.sqlbuilder;
+package org.huytvdev.utils.sqlbuilder.lib;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,7 +18,7 @@ public abstract class QueryConfigurerAdapter<O, B extends QueryBuilder<O>>
 
     }
 
-    public B and() {
+    public B appendQuery() {
         return this.getBuilder();
     }
 

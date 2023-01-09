@@ -1,8 +1,7 @@
-package org.huytvdev.utils.sqlbuilder;
+package org.huytvdev.utils.sqlbuilder.lib;
 
 
 import org.huytvdev.utils.httpsecurityclone.SecurityConfigurer;
-import org.huytvdev.utils.httpsecurityclone.SecurityConfigurerAdapter;
 
 import java.util.*;
 
@@ -88,6 +87,20 @@ public abstract class AbstractConfiguredQueryBuilder<O, B extends QueryBuilder<O
         configurer.setBuilder((B) this);
         this.add(configurer);
         return configurer;
+    }
+
+    /**
+     * Add a {@link QueryStatementAdapter} to this {@link QueryBuilder} and
+     * invokes {@link QueryStatementAdapter#setBuilder(QueryBuilder)}.
+     * @param configurer
+     * @return the {@link QueryStatementAdapter} for further customizations
+     * @throws Exception
+     */
+    @SuppressWarnings("unchecked")
+    public <S extends QueryStatementAdapter<O, B>> S addStatement(S statement) throws Exception {
+        statement.setBuilder((B) this);
+//        this.add(configurer);
+        return statement;
     }
 
     /**

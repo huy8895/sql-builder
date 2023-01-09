@@ -1,4 +1,4 @@
-package org.huytvdev.utils.sqlbuilder;
+package org.huytvdev.utils.sqlbuilder.lib;
 
 /**
  * Allows initialization of Objects. Typically this is used to call the {@link Aware}

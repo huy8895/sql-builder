@@ -1,8 +1,8 @@
-package org.huytvdev.utils.sqlbuilder;
+package org.huytvdev.utils.sqlbuilder.lib;
 
 public class NativeQuery extends AbstractConfiguredQueryBuilder<DefaultSqlQueryChain, NativeQuery>
-        implements QueryBuilder<DefaultSqlQueryChain>, SqlQueryBuilder<NativeQuery> {
-    protected NativeQuery(boolean allowConfigurersOfSameType, ObjectPostProcessor<Object> objectPostProcessor) {
+        implements QueryBuilder<DefaultSqlQueryChain> {
+    public NativeQuery(boolean allowConfigurersOfSameType, ObjectPostProcessor<Object> objectPostProcessor) {
         super(allowConfigurersOfSameType, objectPostProcessor);
     }
 
@@ -16,7 +16,7 @@ public class NativeQuery extends AbstractConfiguredQueryBuilder<DefaultSqlQueryC
         return new DefaultSqlQueryChain();
     }
 
-    public JoinConfigurer<NativeQuery> join() throws Exception {
-        return apply(new JoinConfigurer<>());
+    public JoinStatement<NativeQuery> join() throws Exception {
+        return this.addStatement(new JoinStatement<>());
     }
 }
