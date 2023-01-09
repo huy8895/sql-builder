@@ -1,9 +1,23 @@
 package org.huytvdev.utils.sqlbuilder.lib;
 
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+
 public class NativeQuery extends AbstractConfiguredQueryBuilder<DefaultSqlQueryChain, NativeQuery>
         implements QueryBuilder<DefaultSqlQueryChain> {
+    private final List<String> columns = new LinkedList<>();
     public NativeQuery(boolean allowConfigurersOfSameType, ObjectPostProcessor<Object> objectPostProcessor) {
         super(allowConfigurersOfSameType, objectPostProcessor);
+    }
+
+    public NativeQuery() {
+        super(true, new ObjectPostProcessor<Object>() {
+            @Override
+            public <O> O postProcess(O object) {
+                return object;
+            }
+        });
     }
 
 //    protected SqlQueryBuilder(ObjectPostProcessor<Object> objectPostProcessor) {
@@ -12,8 +26,9 @@ public class NativeQuery extends AbstractConfiguredQueryBuilder<DefaultSqlQueryC
 
     @Override
     protected DefaultSqlQueryChain performBuild() throws Exception {
-        // TODO: 6/1/2023
-        return new DefaultSqlQueryChain();
+        return DefaultSqlQueryChain.builder()
+                                   .columns(this.columns)
+                                   .build();
     }
 
 //    public JoinStatement<NativeQuery> join(String table) throws Exception {
@@ -39,6 +54,11 @@ public class NativeQuery extends AbstractConfiguredQueryBuilder<DefaultSqlQueryC
             throws Exception {
         final var statement = new JoinStatement<NativeQuery>();
         this.addStatement(statement);
+        return this;
+    }
+
+    public NativeQuery select(String... columns) {
+        Collections.addAll(this.columns, columns);
         return this;
     }
 }
