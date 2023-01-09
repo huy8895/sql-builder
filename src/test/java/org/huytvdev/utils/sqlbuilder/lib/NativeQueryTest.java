@@ -21,8 +21,7 @@ class NativeQueryTest {
                            .from("user")
                            .build();
         Assertions.assertEquals("SELECT id , name FROM user".replaceAll("\\s+", ""),
-                                queryChain.getSql()
-                                          .replaceAll("\\s+", ""));
+                                queryChain.getSql().replaceAll("\\s+", ""));
     }
 
 }
