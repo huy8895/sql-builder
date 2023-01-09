@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 
 class NativeQueryTest {
     @Test
-    void test() throws Exception {
+    void testSelect() throws Exception {
         final var nativeQuery = new NativeQuery();
         final var queryChain = nativeQuery.select("id", "name")
                                      .build();
