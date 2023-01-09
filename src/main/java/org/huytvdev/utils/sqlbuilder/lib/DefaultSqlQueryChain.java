@@ -35,7 +35,8 @@ public final class DefaultSqlQueryChain {
                 if (i == 0) {
                     statements.add(whereClause.toString());
                 } else {
-                    statements.add(whereClause.getType() + " " + whereClause);
+                    final var isAnd = whereClause.isAnd() ? "AND" : "OR";
+                    statements.add(isAnd + " " + whereClause);
                 }
             }
         }

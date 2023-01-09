@@ -77,6 +77,7 @@ public class NativeQuery extends AbstractConfiguredQueryBuilder<DefaultSqlQueryC
                                    .column(column)
                                    .operator(operator)
                                    .value(value)
+                                   .and(true)
                                    .build());
         return this;
     }

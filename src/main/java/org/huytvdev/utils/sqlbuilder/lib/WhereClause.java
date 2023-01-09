@@ -9,7 +9,7 @@ public class WhereClause {
     private String column;
     private String operator;
     private Object value;
-    private String type;
+    private boolean and;
 
     @Override
     public String toString() {
