@@ -14,4 +14,16 @@ class NativeQueryTest {
                                                                                      .replaceAll("\\s+", ""));
     }
 
+    @Test
+    void testSelectFrom() throws Exception {
+        final var nativeQuery = new NativeQuery();
+        final var queryChain =
+                nativeQuery.select("id", "name")
+                           .from("user")
+                           .build();
+        System.out.println("queryChain.getSql() = " + queryChain.getSql());
+        Assertions.assertEquals("SELECT id , name FROM user".replaceAll("\\s+", ""), queryChain.getSql()
+                                                                                     .replaceAll("\\s+", ""));
+    }
+
 }

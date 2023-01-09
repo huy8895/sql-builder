@@ -7,6 +7,7 @@ import java.util.List;
 public class NativeQuery extends AbstractConfiguredQueryBuilder<DefaultSqlQueryChain, NativeQuery>
         implements QueryBuilder<DefaultSqlQueryChain> {
     private final List<String> columns = new LinkedList<>();
+    private String from;
     public NativeQuery(boolean allowConfigurersOfSameType, ObjectPostProcessor<Object> objectPostProcessor) {
         super(allowConfigurersOfSameType, objectPostProcessor);
     }
@@ -28,6 +29,7 @@ public class NativeQuery extends AbstractConfiguredQueryBuilder<DefaultSqlQueryC
     protected DefaultSqlQueryChain performBuild() throws Exception {
         return DefaultSqlQueryChain.builder()
                                    .columns(this.columns)
+                                   .from(this.from)
                                    .build();
     }
 
@@ -59,6 +61,11 @@ public class NativeQuery extends AbstractConfiguredQueryBuilder<DefaultSqlQueryC
 
     public NativeQuery select(String... columns) {
         Collections.addAll(this.columns, columns);
+        return this;
+    }
+
+    public NativeQuery from(String table) {
+        this.from = table;
         return this;
     }
 }
