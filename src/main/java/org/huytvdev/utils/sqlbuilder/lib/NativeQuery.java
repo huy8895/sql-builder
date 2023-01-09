@@ -96,8 +96,7 @@ public class NativeQuery extends AbstractConfiguredQueryBuilder<DefaultSqlQueryC
     private boolean invalidOperator(String operator) {
         if (operator == null) return false;
         return Arrays.stream(OPERATORS)
-                     .noneMatch(s -> s.toUpperCase()
-                                      .equals(operator));
+                     .noneMatch(s -> s.equalsIgnoreCase(operator));
     }
 
     public NativeQuery whereRaw(String raw) {

@@ -6,6 +6,7 @@ import lombok.Getter;
 @Getter
 @Builder
 public class WhereClause {
+    public static final String SINGLE_QUOTE = "'";
     private String column;
     private String operator;
     private Object value;
@@ -15,8 +16,9 @@ public class WhereClause {
 
     public String getSql() {
         if (this.rawSql != null) return this.rawSql;
+        String value = this.value == null ? null : String.format("'%s'", this.value);
         return column
                 + ' ' + operator
-                + ' ' + '\'' + value + '\'';
+                + ' ' + value;
     }
 }
