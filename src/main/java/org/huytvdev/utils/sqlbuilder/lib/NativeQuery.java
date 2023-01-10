@@ -17,6 +17,7 @@ public class NativeQuery extends AbstractConfiguredQueryBuilder<DefaultSqlQueryC
     private final List<String> columns = new LinkedList<>();
     private String from;
     private List<WhereClause> wheres = new LinkedList<>();
+    private List<JoinClause> joins = new LinkedList<>();
 
     public NativeQuery(boolean allowConfigurersOfSameType, ObjectPostProcessor<Object> objectPostProcessor) {
         super(allowConfigurersOfSameType, objectPostProcessor);
@@ -47,6 +48,7 @@ public class NativeQuery extends AbstractConfiguredQueryBuilder<DefaultSqlQueryC
                                    .columns(this.columns)
                                    .from(this.from)
                                    .wheres(this.wheres)
+                                   .joins(this.joins)
                                    .build();
     }
 //    public JoinStatement<NativeQuery> join(String table) throws Exception {
@@ -69,10 +71,22 @@ public class NativeQuery extends AbstractConfiguredQueryBuilder<DefaultSqlQueryC
     }
 
 
-    public NativeQuery join(String table, String first, String operator, String second)
-            throws Exception {
-        final var statement = new JoinStatement<NativeQuery>();
-        this.addStatement(statement);
+    public NativeQuery join(String table, String first, String operator, String second) {
+        return createJoin(table, first, operator, second);
+    }
+
+    private NativeQuery createJoin(String table, String first, String operator, String second) {
+        if (this.invalidOperator(operator)) {
+            throw new InvalidArgumentException("Illegal operator and value combination.");
+        }
+        this.joins.add(JoinClause.builder()
+                                 .table(table)
+                                 .first(first)
+                                 .operator(operator)
+                                 .second(second)
+                                 .and(true)
+                                 .type("INNER")
+                                 .build());
         return this;
     }
 

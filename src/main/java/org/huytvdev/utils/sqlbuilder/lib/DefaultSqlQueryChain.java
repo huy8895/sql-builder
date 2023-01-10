@@ -9,6 +9,7 @@ import java.util.List;
 public final class DefaultSqlQueryChain {
     private List<String> columns;
     private List<WhereClause> wheres;
+    private List<JoinClause> joins;
     private String from;
 
     public String getSql() {
@@ -20,9 +21,15 @@ public final class DefaultSqlQueryChain {
             statements.add(String.join(",", this.columns));
         }
 
+
         if (null != from) {
             statements.add("FROM");
             statements.add(this.from);
+        }
+
+        if (!this.joins.isEmpty()) {
+            final var joinStatements = JoinClause.extractedStatements(this.joins);
+            statements.addAll(joinStatements);
         }
 
         if (!this.wheres.isEmpty()) {
