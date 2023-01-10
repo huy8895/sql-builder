@@ -35,6 +35,12 @@ public class NativeQuery extends AbstractConfiguredQueryBuilder<DefaultSqlQueryC
 //        super(objectPostProcessor);
 //    }
 
+    private boolean invalidOperator(String operator) {
+        if (operator == null) return false;
+        return Arrays.stream(OPERATORS)
+                     .noneMatch(s -> s.equalsIgnoreCase(operator));
+    }
+
     @Override
     protected DefaultSqlQueryChain performBuild() throws Exception {
         return DefaultSqlQueryChain.builder()
@@ -43,7 +49,6 @@ public class NativeQuery extends AbstractConfiguredQueryBuilder<DefaultSqlQueryC
                                    .wheres(this.wheres)
                                    .build();
     }
-
 //    public JoinStatement<NativeQuery> join(String table) throws Exception {
 //        return this.addStatement(new JoinStatement<>(table));
 //    }
@@ -53,6 +58,7 @@ public class NativeQuery extends AbstractConfiguredQueryBuilder<DefaultSqlQueryC
 //        final var statement = new JoinStatement<NativeQuery>(tablename);
 //        customizer.customize(statement);
 //        return this.addStatement(statement);
+
 //    }
 
     public JoinStatement<NativeQuery> join(Customizer<JoinStatement<NativeQuery>> customizer)
@@ -111,12 +117,6 @@ public class NativeQuery extends AbstractConfiguredQueryBuilder<DefaultSqlQueryC
                                    .and(true)
                                    .build());
         return this;
-    }
-
-    private boolean invalidOperator(String operator) {
-        if (operator == null) return false;
-        return Arrays.stream(OPERATORS)
-                     .noneMatch(s -> s.equalsIgnoreCase(operator));
     }
 
     public NativeQuery whereRaw(String raw) {
