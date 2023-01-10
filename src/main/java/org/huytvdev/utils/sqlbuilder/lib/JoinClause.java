@@ -59,6 +59,10 @@ public class JoinClause {
     public JoinClause on(String first, String operator, String second){
         return this.on(first, operator, second, true);
     };
+
+    public JoinClause or(String first, String operator, String second){
+        return this.on(first, operator, second, false);
+    };
     public static List<String> extractedStatements(List<JoinClause> clauses) {
         final var result = new LinkedList<String>();
         final var index = new AtomicInteger(0);
