@@ -137,4 +137,25 @@ class NativeQueryTest {
         Assertions.assertEquals(expected.toUpperCase().replaceAll("\\s+", ""),
                                 (actual.toUpperCase().replaceAll("\\s+", "")));
     }
+
+    @Test
+    void testJoinOnChained() throws Exception {
+        final var nativeQuery = new NativeQuery();
+        final var queryChain =
+                nativeQuery.select("*")
+                           .from("users")
+                           .join("contacts",
+                                 q -> q.on("users.id", "=", "contacts.user_id")
+                                       .on("contacts.info_id", "=", "orders.user_id"))
+                           .join("orders", "users.id", "=", "orders.user_id")
+                           .where("name", "=", "John")
+                           .build();
+        final var expected =
+                "SELECT * FROM users " +
+                        "INNER JOIN contacts ON users.id = contacts.user_id AND contacts.info_id = orders.user_id " +
+                        "INNER JOIN orders ON users.id = orders.user_id WHERE name = 'John'";
+        final var actual = queryChain.getSql();
+        Assertions.assertEquals(expected.toUpperCase().replaceAll("\\s+", " "),
+                                (actual.toUpperCase().replaceAll("\\s+", " ")));
+    }
 }
